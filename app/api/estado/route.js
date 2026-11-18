@@ -14,5 +14,6 @@ export function GET() {
     KV_REST_API_URL: has('KV_REST_API_URL') || has('UPSTASH_REDIS_REST_URL'),
     KV_REST_API_TOKEN: has('KV_REST_API_TOKEN') || has('UPSTASH_REDIS_REST_TOKEN'),
   };
-  return Response.json({ ok: Object.values(vars).every(Boolean), vars, entorno: process.env.VERCEL_ENV || 'local' });
+  const { AUTH_GOOGLE_SECRET_espacios, ...required } = vars;
+  return Response.json({ ok: Object.values(required).every(Boolean), vars, entorno: process.env.VERCEL_ENV || 'local' });
 }
