@@ -2,7 +2,11 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 
-const providers = [Google];
+const env = (k) => (process.env[k] || '').trim().replace(/^["']|["']$/g, '') || undefined;
+
+const providers = [
+  Google({ clientId: env('AUTH_GOOGLE_ID'), clientSecret: env('AUTH_GOOGLE_SECRET') }),
+];
 
 // Solo en local: login de prueba sin Google (AUTH_DEV_LOGIN=1 en .env.local).
 if (process.env.AUTH_DEV_LOGIN === '1' && process.env.NODE_ENV !== 'production') {
@@ -18,7 +22,15 @@ if (process.env.AUTH_DEV_LOGIN === '1' && process.env.NODE_ENV !== 'production')
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
+  secret: env('AUTH_SECRET'),
   session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 30 },
-  pages: { signIn: '/login' },
+  pages: { signIn: '/login', error: '/login' },
   trustHost: true,
+  logger: {
+    // Queda en los registros de Vercel (Logs) para poder diagnosticar.
+    error(error) {
+      const cause = error?.cause?.err || error?.cause || {};
+      console.error('[auth]', error?.type || error?.name, '-', error?.message, '| causa:', cause?.message || cause?.error || '', cause?.error_description || '');
+    },
+  },
 });
