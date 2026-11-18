@@ -30,6 +30,9 @@ export default async function Login() {
           </form>
         )}
         <InstallHint />
+        <p className="small" style={{ marginTop: 14, marginBottom: 0 }}>
+          <a href="/privacidad" style={{ color: 'var(--muted)' }}>Política de privacidad</a>
+        </p>
       </div>
     </section>
   );
