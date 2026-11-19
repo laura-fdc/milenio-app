@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { saveAvisosAction } from '@/app/actions';
 import PushToggle from './PushToggle';
 
-export default function AvisosPrefs({ memberId, initial, emails, emailActivo }) {
+export default function AvisosPrefs({ memberId, initial, emails, emailActivo, publicKey }) {
   const [p, setP] = useState(initial);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -24,7 +24,7 @@ export default function AvisosPrefs({ memberId, initial, emails, emailActivo }) 
     <div className="stack" style={{ gap: 10 }}>
       <p className="small muted" style={{ margin: 0 }}>Cuando no asista a una clase (se marque ❌ al pasar lista), ¿cómo quieres que te avisemos?</p>
       <label className="check"><input type="checkbox" checked={p.app} onChange={(e) => setP({ ...p, app: e.target.checked })} /> 📱 Notificación en la app</label>
-      {p.app && <div style={{ marginLeft: 28 }}><PushToggle compact /></div>}
+      {p.app && <div style={{ marginLeft: 28 }}><PushToggle compact publicKey={publicKey} /></div>}
       <label className="check"><input type="checkbox" checked={p.email} onChange={(e) => setP({ ...p, email: e.target.checked })} disabled={!emails.length} /> ✉️ Email</label>
       {p.email && (
         <div style={{ marginLeft: 28, display: 'grid', gap: 6 }}>

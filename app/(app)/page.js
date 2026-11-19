@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { requireUser, canSeeMember } from '@/lib/session';
 import { listMembers, ageOf, membersInGroup, listComunicados, getFeed } from '@/lib/db';
 import PushToggle from '@/components/PushToggle';
+import { vapidPublicKey } from '@/lib/notify';
 import ComunicadoList from '@/components/ComunicadoList';
 
 const fmtShort = (iso) => new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' }).format(new Date(iso));
@@ -34,7 +35,7 @@ export default async function Home() {
           ))}
         </div>
         <p className="small muted">Entra en la ficha para avisar de que no irá a clase o elegir cómo quieres recibir los avisos.</p>
-        <div style={{ margin: '12px 0' }}><PushToggle /></div>
+        <div style={{ margin: '12px 0' }}><PushToggle publicKey={vapidPublicKey()} /></div>
 
         <h2>📢 Comunicados del club</h2>
         <ComunicadoList items={mineCom} empty="No hay comunicados." />
@@ -100,7 +101,7 @@ export default async function Home() {
         {user.role === 'root' && <Link className="btn ghost" style={{ padding: '8px 12px' }} href="/gestion/comunicados">＋ Nuevo</Link>}
       </div>
       <ComunicadoList items={comunicados.filter((c) => user.role === 'root' || c.todos || c.groups.some((g) => user.groups.includes(g))).slice(0, 5)} empty="Todavía no hay comunicados." />
-      {user.role === 'entrenadora' && <div style={{ marginTop: 12 }}><PushToggle /></div>}
+      {user.role === 'entrenadora' && <div style={{ marginTop: 12 }}><PushToggle publicKey={vapidPublicKey()} /></div>}
 
       {user.role === 'entrenadora' && !user.groups.length && (
         <p className="note" style={{ marginTop: 16 }}>Aún no tienes grupos asignados. Pide al club que te los asigne.</p>

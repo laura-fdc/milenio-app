@@ -18,7 +18,7 @@ export function GET() {
   const opcionales = {
     email_GMAIL_USER: has('GMAIL_USER'),
     email_GMAIL_APP_PASSWORD: has('GMAIL_APP_PASSWORD'),
-    push_NEXT_PUBLIC_VAPID_PUBLIC_KEY: has('NEXT_PUBLIC_VAPID_PUBLIC_KEY'),
+    push_VAPID_PUBLIC_KEY: has('VAPID_PUBLIC_KEY'),
     push_VAPID_PRIVATE_KEY: has('VAPID_PRIVATE_KEY'),
     lectura_mano_GOOGLE_VISION_API_KEY: has('GOOGLE_VISION_API_KEY'),
   };

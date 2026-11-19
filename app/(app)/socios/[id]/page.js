@@ -8,7 +8,7 @@ import { deleteMemberAction } from '@/app/actions';
 import ConfirmButton from '@/components/ConfirmButton';
 import AvisosPrefs from '@/components/AvisosPrefs';
 import AusenciaForm from '@/components/AusenciaForm';
-import { avisosDe, emailConfigured } from '@/lib/notify';
+import { avisosDe, emailConfigured, vapidPublicKey } from '@/lib/notify';
 import { todayMadrid, upcomingClasses, prettyDate } from '@/lib/dates';
 
 const F = ({ l, v }) => (
@@ -94,7 +94,7 @@ export default async function Perfil({ params }) {
             </div>
             <div className="card">
               <h4>🔔 Avisos</h4>
-              <AvisosPrefs memberId={m.id} initial={avisosDe(m)} emails={memberEmails(m)} emailActivo={emailConfigured()} />
+              <AvisosPrefs memberId={m.id} initial={avisosDe(m)} emails={memberEmails(m)} emailActivo={emailConfigured()} publicKey={vapidPublicKey()} />
             </div>
             {(isRoot || docs.length > 0) && (
               <div className="card">

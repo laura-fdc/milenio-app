@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { subscribePushAction, unsubscribePushAction } from '@/app/actions';
 
-const KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
 function b64ToBytes(b64) {
   const pad = '='.repeat((4 - (b64.length % 4)) % 4);
@@ -11,7 +10,7 @@ function b64ToBytes(b64) {
 }
 
 // Activa o desactiva las notificaciones de la app en ESTE dispositivo.
-export default function PushToggle({ compact }) {
+export default function PushToggle({ compact, publicKey: KEY }) {
   const [state, setState] = useState('cargando'); // cargando | no-soportado | ios-instalar | off | on | bloqueado
   const [busy, setBusy] = useState(false);
 
