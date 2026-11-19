@@ -15,7 +15,6 @@ App web (instalable en el móvil como app) para gestionar socios, grupos y asist
 - **Avisos a familias**: cada familia elige en la ficha si quiere aviso por la app (push) y/o por email (a los correos de la ficha) cuando se marque ❌ al pasar lista. Un aviso por socio y día.
 - **Avisar ausencia**: la familia elige una próxima clase y el motivo; al pasar lista aparece "Avisó que no viene" y no se le envía aviso.
 - **Comunicados** (root): a todo el club o a grupos concretos, por la app y por email (BCC).
-- **Fichas a mano**: fotos o PDF escaneado leídos con Google Cloud Vision, alineados con la plantilla (`lib/ocr.js`). Root revisa antes de guardar.
 - **Pagos y documentos**: Excel de pagos o alta manual; justificantes (J-año-nº) y facturas (F-año-nº, exentas de IVA) en PDF, descargables también por la familia.
 - **PWA**: manifest, iconos y service worker para "Añadir a pantalla de inicio".
 

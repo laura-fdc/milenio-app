@@ -20,7 +20,6 @@ export function GET() {
     email_GMAIL_APP_PASSWORD: has('GMAIL_APP_PASSWORD'),
     push_VAPID_PUBLIC_KEY: has('VAPID_PUBLIC_KEY'),
     push_VAPID_PRIVATE_KEY: has('VAPID_PRIVATE_KEY'),
-    lectura_mano_GOOGLE_VISION_API_KEY: has('GOOGLE_VISION_API_KEY'),
   };
   return Response.json({ ok: Object.values(required).every(Boolean), vars, opcionales, entorno: process.env.VERCEL_ENV || 'local' });
 }

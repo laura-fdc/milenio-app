@@ -12,10 +12,9 @@ import {
 } from '@/lib/db';
 import { getGroup, ALL_GROUPS, getSection } from '@/lib/catalog';
 import { isIso, todayMadrid, dowOf, prettyDate } from '@/lib/dates';
-import { parseFicha, imagesToPdf } from '@/lib/pdf';
+import { parseFicha } from '@/lib/pdf';
 import { readWorkbook, planImport } from '@/lib/excel';
 import { notifyMember, notifyComunicado } from '@/lib/notify';
-import { ocrFicha, visionConfigured } from '@/lib/ocr';
 import { readPagosWorkbook } from '@/lib/pagos';
 
 async function mustRoot() {
@@ -243,23 +242,10 @@ export async function generarDocAction(memberId, fd) {
 /* ---------- Fichas PDF ---------- */
 export async function parsePdfAction(fd) {
   await mustRoot();
-  const files = fd.getAll('file').filter((f) => f && typeof f !== 'string');
-  const file = files[0];
-  if (!file) return { error: 'No se ha recibido el archivo' };
+  const file = fd.get('file');
+  if (!file || typeof file === 'string') return { error: 'No se ha recibido el PDF' };
   try {
-    const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
-    let parsed = isPdf ? await parseFicha(new Uint8Array(await file.arrayBuffer())) : { fieldCount: 0, filled: 0, member: null };
-    if (parsed.filled === 0) {
-      if (!visionConfigured()) {
-        if (!isPdf) return { error: 'Para leer fotos o fichas a mano hay que configurar GOOGLE_VISION_API_KEY en Vercel.' };
-      } else {
-        const ocr = await ocrFicha(await Promise.all(files.map(async (f) => ({
-          bytes: Buffer.from(await f.arrayBuffer()), type: f.type || (/\.pdf$/i.test(f.name) ? 'application/pdf' : 'image/jpeg'),
-        }))));
-        parsed = { ...ocr, ocr: true };
-      }
-    }
-    if (!parsed.member) parsed.member = {};
+    const parsed = await parseFicha(new Uint8Array(await file.arrayBuffer()));
     const members = await listMembers();
     const dni = parsed.member.dni;
     const match = dni ? members.find((m) => (m.dni || '').toUpperCase() === dni) : null;
@@ -297,13 +283,10 @@ export async function saveMemberAction(fd) {
   if (originalId && originalId !== id) await deleteMember(originalId);
   await saveMember(m);
 
-  const files = fd.getAll('file').filter((f) => f && typeof f !== 'string' && f.size);
-  if (files.length) {
-    const isPdf = files[0].type === 'application/pdf' || /\.pdf$/i.test(files[0].name);
-    const bytes = isPdf
-      ? Buffer.from(await files[0].arrayBuffer())
-      : Buffer.from(await imagesToPdf(await Promise.all(files.map(async (f) => ({ bytes: new Uint8Array(await f.arrayBuffer()), type: f.type })))));
-    if (bytes.length > 3_000_000) return { ok: true, id, warning: 'Ficha guardada, pero el archivo es demasiado grande para adjuntarlo (máx. 3 MB).' };
+  const file = fd.get('file');
+  if (file && typeof file !== 'string' && file.size) {
+    const bytes = Buffer.from(await file.arrayBuffer());
+    if (bytes.length > 3_000_000) return { ok: true, id, warning: 'Ficha guardada, pero el PDF es demasiado grande para adjuntarlo (máx. 3 MB).' };
     await savePdf(id, bytes.toString('base64'));
     m.pdf = true;
     await saveMember(m);

@@ -2,11 +2,10 @@ import Link from 'next/link';
 import { requireUser } from '@/lib/session';
 import { usingRedis } from '@/lib/kv';
 import { emailConfigured, pushConfigured } from '@/lib/notify';
-import { visionConfigured } from '@/lib/ocr';
 
 const ITEMS = [
   { href: '/gestion/comunicados', ico: '📢', t: 'Enviar comunicado', d: 'Cambios de horario, festivos… por la app y por email' },
-  { href: '/gestion/ficha', ico: '📄', t: 'Subir ficha (PDF o foto)', d: 'Rellenable, escaneada o escrita a mano' },
+  { href: '/gestion/ficha', ico: '📄', t: 'Subir ficha PDF', d: 'Lee la ficha de inscripción y crea o actualiza el socio' },
   { href: '/gestion/pagos', ico: '💶', t: 'Importar Excel de pagos', d: 'Cuotas pagadas por cada socio, para justificantes y facturas' },
   { href: '/gestion/excel', ico: '📊', t: 'Importar Excel de grupos', d: 'Sincroniza los listados de entrenadoras (se puede resubir)' },
   { href: '/gestion/nuevo', ico: '✍️', t: 'Nueva ficha a mano', d: 'Para fichas en papel o escaneadas' },
@@ -22,7 +21,6 @@ export default async function Gestion() {
       <div className="toolbar">
         <span className={`tag ${emailConfigured() ? 'ok' : 'warn'}`}>✉️ Email {emailConfigured() ? 'activo' : 'sin configurar'}</span>
         <span className={`tag ${pushConfigured() ? 'ok' : 'warn'}`}>🔔 Notificaciones {pushConfigured() ? 'activas' : 'sin configurar'}</span>
-        <span className={`tag ${visionConfigured() ? 'ok' : 'warn'}`}>✍️ Lectura a mano {visionConfigured() ? 'activa' : 'sin configurar'}</span>
       </div>
       <div className="list">
         {ITEMS.map((i) => (
