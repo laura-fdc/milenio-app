@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { comunicadoAction } from '@/app/actions';
 
@@ -9,24 +9,50 @@ const PLANTILLAS = [
   { t: 'Pista cerrada', m: 'La pista de hielo estará cerrada y se suspende el entrenamiento. Disculpad las molestias.' },
 ];
 
+// Casilla que puede mostrarse "a medias" cuando solo hay algunos subgrupos marcados.
+function TriCheck({ checked, partial, onChange, children, big }) {
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current) ref.current.indeterminate = partial && !checked; }, [partial, checked]);
+  return (
+    <label className="check" style={big ? { fontWeight: 700 } : undefined}>
+      <input ref={ref} type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} /> {children}
+    </label>
+  );
+}
+
 export default function ComunicadoForm({ sections }) {
   const router = useRouter();
-  const [todos, setTodos] = useState(true);
+  const allIds = sections.flatMap((s) => s.groups.map((g) => g.id));
+  const [sel, setSel] = useState(() => new Set(allIds));
   const [titulo, setTitulo] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState(null);
 
+  const todos = sel.size === allIds.length;
+  const setMany = (ids, on) => setSel((s) => { const c = new Set(s); ids.forEach((id) => (on ? c.add(id) : c.delete(id))); return c; });
+
+  const resumen = todos
+    ? 'Todo el club'
+    : sections.map((s) => {
+        const on = s.groups.filter((g) => sel.has(g.id));
+        if (!on.length) return null;
+        return on.length === s.groups.length ? `${s.name} (todas)` : `${s.name}: ${on.map((g) => g.name).join(', ')}`;
+      }).filter(Boolean).join(' · ') || 'Nadie';
+
   async function submit(e) {
     e.preventDefault();
     const form = e.currentTarget;
+    if (!sel.size) { setRes({ error: 'Elige a quién va dirigido' }); return; }
     const fd = new FormData(form);
     fd.set('todos', todos ? '1' : '0');
-    if (!confirm(todos ? '¿Enviar este comunicado a TODO el club?' : '¿Enviar este comunicado a los grupos marcados?')) return;
+    fd.delete('groups');
+    if (!todos) sel.forEach((id) => fd.append('groups', id));
+    if (!confirm(`¿Enviar este comunicado a: ${resumen}?`)) return;
     setBusy(true); setRes(null);
     const r = await comunicadoAction(fd).catch((er) => ({ error: er.message }));
     setBusy(false); setRes(r);
-    if (r?.ok) { form.reset(); setTitulo(''); setMensaje(''); setTodos(true); router.refresh(); }
+    if (r?.ok) { form.reset(); setTitulo(''); setMensaje(''); setSel(new Set(allIds)); router.refresh(); }
   }
 
   return (
@@ -47,19 +73,34 @@ export default function ComunicadoForm({ sections }) {
           <textarea name="mensaje" rows={4} required maxLength={3000} value={mensaje} onChange={(e) => setMensaje(e.target.value)} />
         </label>
       </div>
+
       <div>
-        <div className="lbl" style={{ marginBottom: 6 }}>¿A quién?</div>
-        <label className="check"><input type="checkbox" checked={todos} onChange={(e) => setTodos(e.target.checked)} /> Todo el club</label>
-        {!todos && sections.map((s) => (
-          <div key={s.id} style={{ margin: '8px 0 0 4px' }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{s.ico} {s.name}</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px' }}>
-              {s.groups.map((g) => <label key={g.id} className="check small"><input type="checkbox" name="groups" value={g.id} /> {g.name}</label>)}
-            </div>
-          </div>
-        ))}
+        <div className="lbl" style={{ marginBottom: 8 }}>¿A quién?</div>
+        <TriCheck big checked={todos} partial={sel.size > 0} onChange={(on) => setSel(new Set(on ? allIds : []))}>🏟️ Todo el club</TriCheck>
+        <div className="stack" style={{ gap: 8, marginTop: 10 }}>
+          {sections.map((s) => {
+            const ids = s.groups.map((g) => g.id);
+            const n = ids.filter((id) => sel.has(id)).length;
+            return (
+              <div key={s.id} style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '10px 12px' }}>
+                <TriCheck big checked={n === ids.length} partial={n > 0} onChange={(on) => setMany(ids, on)}>
+                  {s.ico} {s.name} <span className="small muted" style={{ fontWeight: 500 }}>· todas</span>
+                </TriCheck>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', margin: '6px 0 0 28px' }}>
+                  {s.groups.map((g) => (
+                    <label key={g.id} className="check small">
+                      <input type="checkbox" checked={sel.has(g.id)} onChange={(e) => setMany([g.id], e.target.checked)} /> {g.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="small" style={{ margin: '8px 0 0' }}>Se enviará a: <b>{resumen}</b></p>
       </div>
-      <button className="btn" disabled={busy}>{busy ? 'Enviando…' : '📢 Enviar por la app y por email'}</button>
+
+      <button className="btn" disabled={busy || !sel.size}>{busy ? 'Enviando…' : '📢 Enviar por la app y por email'}</button>
       {res?.error && <p className="note err" style={{ margin: 0 }}>{res.error}</p>}
       {res?.ok && (
         <p className="note okn" style={{ margin: 0 }}>

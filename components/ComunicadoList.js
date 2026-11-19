@@ -1,4 +1,14 @@
-import { getGroup } from '@/lib/catalog';
+import { SECTIONS } from '@/lib/catalog';
+
+// Etiquetas de destinatarios: una sección entera se muestra como "Escuelas (todas)".
+function destinatarios(c) {
+  if (c.todos) return ['Todo el club'];
+  return SECTIONS.flatMap((s) => {
+    const on = s.groups.filter((g) => c.groups.includes(g.id));
+    if (!on.length) return [];
+    return on.length === s.groups.length ? [`${s.name} (todas)`] : on.map((g) => `${s.name} · ${g.name}`);
+  });
+}
 import { prettyDate } from '@/lib/dates';
 
 const when = (iso) => new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).format(new Date(iso));
@@ -15,7 +25,7 @@ export default function ComunicadoList({ items, empty }) {
           </div>
           {c.fecha && <div className="small" style={{ color: 'var(--orange-d)', fontWeight: 600, marginTop: 4 }}>📅 {prettyDate(c.fecha)}</div>}
           <p style={{ whiteSpace: 'pre-line', margin: '6px 0' }}>{c.mensaje}</p>
-          <div>{c.todos ? <span className="tag">Todo el club</span> : c.groups.map((g) => <span key={g} className="tag">{getGroup(g)?.name || g}</span>)}</div>
+          <div>{destinatarios(c).map((t) => <span key={t} className="tag">{t}</span>)}</div>
         </div>
       ))}
     </div>
