@@ -5,6 +5,7 @@ import { emailConfigured, pushConfigured } from '@/lib/notify';
 
 const ITEMS = [
   { href: '/gestion/comunicados', ico: '📢', t: 'Enviar comunicado', d: 'Cambios de horario, festivos… por la app y por email' },
+  { href: '/notificaciones', ico: '🔔', t: 'Probar notificaciones', d: 'Activar en este móvil y enviar una prueba' },
   { href: '/gestion/ficha', ico: '📄', t: 'Subir ficha PDF', d: 'Lee la ficha de inscripción y crea o actualiza el socio' },
   { href: '/gestion/pagos', ico: '💶', t: 'Importar Excel de pagos', d: 'Cuotas pagadas por cada socio, para justificantes y facturas' },
   { href: '/gestion/excel', ico: '📊', t: 'Importar Excel de grupos', d: 'Sincroniza los listados de entrenadoras (se puede resubir)' },

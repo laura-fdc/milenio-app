@@ -14,7 +14,7 @@ import { getGroup, ALL_GROUPS, getSection } from '@/lib/catalog';
 import { isIso, todayMadrid, dowOf, prettyDate } from '@/lib/dates';
 import { parseFicha } from '@/lib/pdf';
 import { readWorkbook, planImport } from '@/lib/excel';
-import { notifyMember, notifyComunicado } from '@/lib/notify';
+import { notifyMember, notifyComunicado, sendPush } from '@/lib/notify';
 import { readPagosWorkbook } from '@/lib/pagos';
 
 async function mustRoot() {
@@ -86,6 +86,13 @@ export async function subscribePushAction(sub) {
   if (!sub?.endpoint || !String(sub.endpoint).startsWith('https://')) throw new Error('Suscripción no válida');
   await addPushSub(u.email, { endpoint: sub.endpoint, keys: sub.keys });
   return { ok: true };
+}
+
+export async function testPushAction() {
+  const u = await currentUser();
+  if (!u || u.role === 'none') throw new Error('Sin permiso');
+  const r = await sendPush([u.email], { title: '🔔 Prueba de Milenio', body: 'Si ves esto, las notificaciones funcionan en este móvil.', url: '/' });
+  return { email: u.email, ...r };
 }
 
 export async function unsubscribePushAction(endpoint) {

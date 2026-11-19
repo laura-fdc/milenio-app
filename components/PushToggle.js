@@ -24,7 +24,18 @@ export default function PushToggle({ compact, publicKey: KEY }) {
       if (Notification.permission === 'denied') { setState('bloqueado'); return; }
       const reg = await navigator.serviceWorker.getRegistration();
       const sub = await reg?.pushManager.getSubscription();
-      setState(sub ? 'on' : 'off');
+      if (!sub) { setState('off'); return; }
+      // Si la suscripción se hizo con otra clave, no servirá: se borra para volver a activarla.
+      const key = sub.options?.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey) : null;
+      const want = b64ToBytes(KEY);
+      if (key && (key.length !== want.length || key.some((b, i) => b !== want[i]))) {
+        await sub.unsubscribe().catch(() => {});
+        setState('off');
+        return;
+      }
+      // Resincroniza con el servidor por si se perdió.
+      subscribePushAction(JSON.parse(JSON.stringify(sub))).catch(() => {});
+      setState('on');
     })().catch(() => setState('no-soportado'));
   }, []);
 

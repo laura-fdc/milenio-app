@@ -24,7 +24,7 @@ export default function AvisosPrefs({ memberId, initial, emails, emailActivo, pu
     <div className="stack" style={{ gap: 10 }}>
       <p className="small muted" style={{ margin: 0 }}>Cuando no asista a una clase (se marque ❌ al pasar lista), ¿cómo quieres que te avisemos?</p>
       <label className="check"><input type="checkbox" checked={p.app} onChange={(e) => setP({ ...p, app: e.target.checked })} /> 📱 Notificación en la app</label>
-      {p.app && <div style={{ marginLeft: 28 }}><PushToggle compact publicKey={publicKey} /></div>}
+      {p.app && <div style={{ marginLeft: 28 }} className="stack"><PushToggle compact publicKey={publicKey} /><a href="/notificaciones" className="small" style={{ color: 'var(--orange-d)', fontWeight: 600 }}>¿No te llegan? Probar notificaciones</a></div>}
       <label className="check"><input type="checkbox" checked={p.email} onChange={(e) => setP({ ...p, email: e.target.checked })} disabled={!emails.length} /> ✉️ Email</label>
       {p.email && (
         <div style={{ marginLeft: 28, display: 'grid', gap: 6 }}>
