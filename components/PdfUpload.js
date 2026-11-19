@@ -30,11 +30,12 @@ export default function PdfUpload({ forceId }) {
   const [res, setRes] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  async function onFile(f) {
-    if (!f) return;
-    setFile(f); setBusy(true); setRes(null);
+  async function onFile(list) {
+    const fs = [...(list || [])].slice(0, 2);
+    if (!fs.length) return;
+    setFile(fs); setBusy(true); setRes(null);
     const fd = new FormData();
-    fd.set('file', f);
+    fs.forEach((f) => fd.append('file', f));
     try { setRes(await parsePdfAction(fd)); } catch (e) { setRes({ error: e.message }); }
     setBusy(false);
   }
@@ -51,11 +52,14 @@ export default function PdfUpload({ forceId }) {
         ) : (
           <p className="note okn">🆕 Socio nuevo. Se le asignará el ID <b>{member.id}</b> (puedes cambiarlo).</p>
         )}
-        {res.filled === 0 && (
-          <p className="note err">No se ha leído ningún dato: parece una ficha escaneada o rellenada a mano. Completa los datos en el formulario; el PDF se guardará adjunto.</p>
+        {res.ocr && (
+          <p className="note small">✍️ Ficha escrita a mano leída con Google Vision{res.anchors < 3 ? ' (la imagen no se ha podido alinear bien: revisa con cuidado)' : ''}. <b>Comprueba todos los datos</b>: la letra a mano puede leerse mal.</p>
         )}
-        <p className="small muted">📄 {file?.name} · {res.filled} campos leídos</p>
-        <MemberForm key={file?.name + res.suggestedId} initial={member} auto={auto} file={file}
+        {res.filled === 0 && (
+          <p className="note err">No se ha leído ningún dato{res.ocr ? '' : ': parece una ficha escaneada o rellenada a mano y la lectura a mano no está configurada'}. Completa los datos en el formulario; el archivo se guardará adjunto.</p>
+        )}
+        <p className="small muted">📄 {file?.map((f) => f.name).join(' + ')} · {res.filled} campos leídos</p>
+        <MemberForm key={file?.[0]?.name + res.suggestedId} initial={member} auto={auto} files={file}
           originalId={res.existing?.id || null} onCancel={reset} submitLabel={res.existing ? 'Actualizar ficha' : 'Crear socio'} />
       </>
     );
@@ -65,9 +69,9 @@ export default function PdfUpload({ forceId }) {
     <>
       <label className="drop">
         <div className="ico">{busy ? '⏳' : '📄'}</div>
-        <b>{busy ? 'Leyendo ficha…' : 'Pulsa para elegir el PDF'}</b>
-        <div className="muted small">Ficha + anexo deportivo · rellenable o escaneada</div>
-        <input type="file" accept="application/pdf" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} disabled={busy} />
+        <b>{busy ? 'Leyendo ficha…' : 'Pulsa para elegir el PDF o hacer fotos'}</b>
+        <div className="muted small">PDF rellenable o escaneado, o 1–2 fotos (ficha + anexo deportivo)</div>
+        <input type="file" accept="application/pdf,image/jpeg,image/png" multiple className="hidden" onChange={(e) => onFile(e.target.files)} disabled={busy} />
       </label>
       {res?.error && <p className="note err" style={{ marginTop: 12 }}>{res.error}</p>}
       <p className="small muted" style={{ marginTop: 14 }}>

@@ -1,11 +1,15 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireUser, canSeeMember, redact } from '@/lib/session';
-import { getMember, ageOf, attendanceDates, getAttendance } from '@/lib/db';
+import { getMember, ageOf, attendanceDates, getAttendance, memberEmails, ausenciasDeSocio, getDocs } from '@/lib/db';
 import { getGroup } from '@/lib/catalog';
 import { initials, groupBadges, yesNo, fmtDate } from '@/lib/view';
 import { deleteMemberAction } from '@/app/actions';
 import ConfirmButton from '@/components/ConfirmButton';
+import AvisosPrefs from '@/components/AvisosPrefs';
+import AusenciaForm from '@/components/AusenciaForm';
+import { avisosDe, emailConfigured } from '@/lib/notify';
+import { todayMadrid, upcomingClasses, prettyDate } from '@/lib/dates';
 
 const F = ({ l, v }) => (
   <div className="f"><label>{l}</label><div>{v || v === 0 ? v : '—'}</div></div>
@@ -34,6 +38,16 @@ export default async function Perfil({ params }) {
     }
     att.push({ g, yes, total });
   }
+
+  // Avisos y ausencias (familia y root)
+  const showFamily = ['familia', 'root'].includes(user.role);
+  const today = todayMadrid();
+  const ausencias = showFamily ? await ausenciasDeSocio(m.id) : [];
+  const proximas = showFamily ? upcomingClasses(m, getGroup, today, 28) : [];
+  const docs = showFamily ? await getDocs(m.id) : [];
+  const ausList = ausencias.filter((a) => a.date >= today).map((a) => ({
+    ...a, cancelable: true, label: `${prettyDate(a.date)} · ${getGroup(a.gid)?.name || a.gid}`,
+  }));
 
   return (
     <>
@@ -67,6 +81,40 @@ export default async function Perfil({ params }) {
 
       <div className="stack">
         {m.observaciones && <div className="note err">⚠️ <b>Observaciones:</b> {m.observaciones}</div>}
+
+        {showFamily && (
+          <>
+            <div className="card">
+              <h4>🙋 Avisar de una ausencia</h4>
+              <AusenciaForm
+                memberId={m.id}
+                options={proximas.map((p) => ({ value: `${p.gid}|${p.date}`, label: p.label }))}
+                existing={ausList}
+              />
+            </div>
+            <div className="card">
+              <h4>🔔 Avisos</h4>
+              <AvisosPrefs memberId={m.id} initial={avisosDe(m)} emails={memberEmails(m)} emailActivo={emailConfigured()} />
+            </div>
+            {(isRoot || docs.length > 0) && (
+              <div className="card">
+                <h4>🧾 Pagos y justificantes</h4>
+                {docs.length > 0 && (
+                  <div className="list" style={{ marginBottom: isRoot ? 10 : 0 }}>
+                    {docs.slice(0, 5).map((d) => (
+                      <a key={d.numero} className="row" target="_blank" href={`/api/doc/${encodeURIComponent(m.id)}/${encodeURIComponent(d.numero)}`}>
+                        <div className="mini-av">📄</div>
+                        <div className="who"><b>{d.tipo === 'factura' ? 'Factura' : 'Justificante'} {d.numero}</b><small>{fmtDate(d.fecha)} · {d.total.toFixed(2).replace('.', ',')} €</small></div>
+                        <span className="chev">⬇</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {isRoot && <Link className="btn ghost" href={`/socios/${encodeURIComponent(m.id)}/pagos`}>Gestionar pagos y documentos</Link>}
+              </div>
+            )}
+          </>
+        )}
 
         {att.length > 0 && (
           <div className="card">

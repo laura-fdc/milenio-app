@@ -3,7 +3,7 @@ const nextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: '8mb' },
   },
-  serverExternalPackages: ['exceljs'],
+  serverExternalPackages: ['exceljs', 'web-push', 'nodemailer'],
   async headers() {
     return [
       { source: '/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache' }, { key: 'Service-Worker-Allowed', value: '/' }] },

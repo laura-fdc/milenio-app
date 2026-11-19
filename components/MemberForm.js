@@ -6,7 +6,7 @@ import { saveMemberAction } from '@/app/actions';
 
 const EMPTY_T = { nombre: '', dni: '', mail: '', telefono: '' };
 
-export default function MemberForm({ initial, auto = [], file = null, originalId = null, submitLabel = 'Guardar ficha', onCancel }) {
+export default function MemberForm({ initial, auto = [], files = null, originalId = null, submitLabel = 'Guardar ficha', onCancel }) {
   const router = useRouter();
   const [m, setM] = useState(() => ({
     inscripciones: [], ...initial,
@@ -64,7 +64,7 @@ export default function MemberForm({ initial, auto = [], file = null, originalId
     data.inscripciones = data.inscripciones.map(({ gid, dias }) => ({ gid, dias }));
     fd.set('data', JSON.stringify(data));
     if (originalId) fd.set('originalId', originalId);
-    if (file) fd.set('file', file);
+    (files || []).forEach((f) => fd.append('file', f));
     try {
       const r = await saveMemberAction(fd);
       if (r?.error) { setMsg({ err: true, t: r.error }); setBusy(false); return; }

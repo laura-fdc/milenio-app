@@ -23,11 +23,18 @@ export default function AttendanceList({ gid, fecha, initial, members }) {
   };
 
   const allPresent = () => {
-    const ids = members.filter((m) => att[m.id] === undefined).map((m) => m.id);
-    if (!ids.length) return;
-    setAtt((a) => ({ ...a, ...Object.fromEntries(ids.map((id) => [id, true])) }));
+    // Los que avisaron de que no venían se marcan como ausentes (sin enviarles aviso).
+    const pending = members.filter((m) => att[m.id] === undefined);
+    const ids = pending.filter((m) => !m.aviso).map((m) => m.id);
+    const absent = pending.filter((m) => m.aviso).map((m) => m.id);
+    if (!ids.length && !absent.length) return;
+    setAtt((a) => ({ ...a, ...Object.fromEntries(ids.map((id) => [id, true])), ...Object.fromEntries(absent.map((id) => [id, false])) }));
     start(async () => {
-      try { await markAll(gid, fecha, ids, true); setErr(''); } catch { setErr('No se pudo guardar.'); }
+      try {
+        if (ids.length) await markAll(gid, fecha, ids, true);
+        if (absent.length) await markAll(gid, fecha, absent, false);
+        setErr('');
+      } catch { setErr('No se pudo guardar.'); }
     });
   };
 
@@ -43,6 +50,7 @@ export default function AttendanceList({ gid, fecha, initial, members }) {
           <span className="tag ok">✅ {yes}</span>
           <span className="tag warn">❌ {no}</span>
           <span className="tag">Sin marcar {members.length - yes - no}</span>
+          {members.some((m) => m.aviso) && <span className="tag warn">🙋 {members.filter((m) => m.aviso).length} avisaron</span>}
           <button className="btn ghost" style={{ marginLeft: 'auto', padding: '8px 12px' }} onClick={allPresent}>
             Resto presentes
           </button>
@@ -56,6 +64,7 @@ export default function AttendanceList({ gid, fecha, initial, members }) {
             <div className="who">
               <b>{m.nombre}</b>
               <small>{m.id}{m.edad != null ? ` · ${m.edad} años` : ''}{m.observaciones ? ` · ⚠️ ${m.observaciones}` : ''}</small>
+              {m.aviso && <span className="tag warn" style={{ marginTop: 4, whiteSpace: 'normal' }}>🙋 Avisó que no viene: {m.aviso}</span>}
             </div>
             <div className="toggle">
               <button aria-label="Presente" className={`yes ${att[m.id] === true ? 'on' : ''}`} onClick={() => set(m.id, true)}>✓</button>

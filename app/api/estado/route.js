@@ -15,5 +15,12 @@ export function GET() {
     KV_REST_API_TOKEN: has('KV_REST_API_TOKEN') || has('UPSTASH_REDIS_REST_TOKEN'),
   };
   const { AUTH_GOOGLE_SECRET_espacios, ...required } = vars;
-  return Response.json({ ok: Object.values(required).every(Boolean), vars, entorno: process.env.VERCEL_ENV || 'local' });
+  const opcionales = {
+    email_GMAIL_USER: has('GMAIL_USER'),
+    email_GMAIL_APP_PASSWORD: has('GMAIL_APP_PASSWORD'),
+    push_NEXT_PUBLIC_VAPID_PUBLIC_KEY: has('NEXT_PUBLIC_VAPID_PUBLIC_KEY'),
+    push_VAPID_PRIVATE_KEY: has('VAPID_PRIVATE_KEY'),
+    lectura_mano_GOOGLE_VISION_API_KEY: has('GOOGLE_VISION_API_KEY'),
+  };
+  return Response.json({ ok: Object.values(required).every(Boolean), vars, opcionales, entorno: process.env.VERCEL_ENV || 'local' });
 }

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { requireUser, canSeeGroup } from '@/lib/session';
-import { listMembers, membersInGroup, enrollment, getAttendance, ageOf } from '@/lib/db';
+import { listMembers, membersInGroup, enrollment, getAttendance, getAusencias, ageOf } from '@/lib/db';
 import { getGroup } from '@/lib/catalog';
 import { todayMadrid, dowOf, isIso, nearestSessionDay, prettyDate } from '@/lib/dates';
 import GroupHeader from '@/components/GroupHeader';
@@ -27,6 +27,7 @@ export default async function Lista({ params, searchParams }) {
   const expected = all.filter((m) => enrollment(m, gid).dias.some((d) => sessionsToday.some((s) => s.id === d)));
   const shown = showAll ? all : expected;
   const att = await getAttendance(gid, fecha);
+  const aus = await getAusencias(gid, fecha);
 
   const prev = nearestSessionDay(fecha, dows, -1, false);
   const next = nearestSessionDay(fecha, dows, 1, false);
@@ -61,7 +62,10 @@ export default async function Lista({ params, searchParams }) {
             gid={gid}
             fecha={fecha}
             initial={att}
-            members={shown.map((m) => ({ id: m.id, nombre: m.nombre, edad: ageOf(m), observaciones: m.observaciones || '' }))}
+            members={shown.map((m) => {
+              const a = aus[m.id] ? (typeof aus[m.id] === 'string' ? JSON.parse(aus[m.id]) : aus[m.id]) : null;
+              return { id: m.id, nombre: m.nombre, edad: ageOf(m), observaciones: m.observaciones || '', aviso: a ? (a.motivo || 'sin motivo') : null };
+            })}
           />
           <p className="small muted" style={{ marginTop: 12 }}>
             {showAll

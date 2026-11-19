@@ -12,6 +12,11 @@ App web (instalable en el móvil como app) para gestionar socios, grupos y asist
 - **Excel de grupos**: importa los listados (hojas con `ID SOCIO`, `NombreApelli`, `Edad` y columnas marcadas con X). Se puede resubir: sincroniza altas y bajas por grupo/día con vista previa (`lib/excel.js`).
 - **Pasar lista** en las escuelas: por día, solo los apuntados a ese día, navegación entre sesiones y opción de pasar lista otro día. Historial mensual con %.
 - **Exportar a Excel** cada grupo.
+- **Avisos a familias**: cada familia elige en la ficha si quiere aviso por la app (push) y/o por email (a los correos de la ficha) cuando se marque ❌ al pasar lista. Un aviso por socio y día.
+- **Avisar ausencia**: la familia elige una próxima clase y el motivo; al pasar lista aparece "Avisó que no viene" y no se le envía aviso.
+- **Comunicados** (root): a todo el club o a grupos concretos, por la app y por email (BCC).
+- **Fichas a mano**: fotos o PDF escaneado leídos con Google Cloud Vision, alineados con la plantilla (`lib/ocr.js`). Root revisa antes de guardar.
+- **Pagos y documentos**: Excel de pagos o alta manual; justificantes (J-año-nº) y facturas (F-año-nº, exentas de IVA) en PDF, descargables también por la familia.
 - **PWA**: manifest, iconos y service worker para "Añadir a pantalla de inicio".
 
 ## Puesta en marcha en Vercel
